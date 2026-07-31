@@ -1,10 +1,20 @@
 'use client'
 
 import { useState } from 'react'
+import Script from 'next/script'
 import { createBooking } from '@/lib/actions/booking'
+import { createRazorpayOrder, verifyRazorpayPayment, createStripeCheckoutSession } from '@/lib/actions/payment'
 import type { AvailableSlot } from '@/lib/queries/slots'
 
 const COMMISSION_RATE = 0.12 // must mirror the DB function — display-only, DB is source of truth
+
+type Stage = 'form' | 'paying' | 'success'
+
+declare global {
+  interface Window {
+    Razorpay: any
+  }
+}
 
 export default function CheckoutModal({
   slot,
@@ -15,9 +25,9 @@ export default function CheckoutModal({
 }) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [provider, setProvider] = useState<'razorpay' | 'stripe'>('razorpay')
+  const [stage, setStage] = useState<Stage>('form')
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
 
   const durationDays =
     startDate && endDate
@@ -30,7 +40,7 @@ export default function CheckoutModal({
 
   const isValidDuration = durationDays >= slot.min_booking_days
 
-  const handleConfirm = async () => {
+  const handlePay = async () => {
     setError(null)
 
     if (!startDate || !endDate) {
@@ -42,106 +52,191 @@ export default function CheckoutModal({
       return
     }
 
-    setIsSubmitting(true)
-    const result = await createBooking(null, { slotId: slot.slot_id, startDate, endDate })
-    setIsSubmitting(false)
+    setStage('paying')
 
-    if (result?.error) {
-      setError(result.error)
+    // Step 1: create the booking as a 'pending' payment hold
+    const bookingResult = await createBooking(null, { slotId: slot.slot_id, startDate, endDate })
+    if (bookingResult?.error || !bookingResult?.bookingId) {
+      setError(bookingResult?.error ?? 'Could not create booking')
+      setStage('form')
       return
     }
 
-    setSuccess(true)
+    const bookingId = bookingResult.bookingId
+
+    if (provider === 'stripe') {
+      const session = await createStripeCheckoutSession(bookingId)
+      if (session?.error || !session?.stripeUrl) {
+        setError(session?.error ?? 'Could not start Stripe checkout')
+        setStage('form')
+        return
+      }
+      window.location.href = session.stripeUrl
+      return
+    }
+
+    // Razorpay flow
+    const order = await createRazorpayOrder(bookingId)
+    if (order?.error || !order?.razorpayOrderId) {
+      setError(order?.error ?? 'Could not start payment')
+      setStage('form')
+      return
+    }
+
+    const rzp = new window.Razorpay({
+      key: order.razorpayKeyId,
+      amount: order.amount,
+      currency: 'INR',
+      name: 'WARENT',
+      description: `${slot.warehouse_name} — Slot ${slot.slot_code}`,
+      order_id: order.razorpayOrderId,
+      handler: async (response: any) => {
+        const verify = await verifyRazorpayPayment({
+          bookingId,
+          razorpayOrderId: response.razorpay_order_id,
+          razorpayPaymentId: response.razorpay_payment_id,
+          razorpaySignature: response.razorpay_signature,
+        })
+
+        if (verify?.error) {
+          setError(verify.error)
+          setStage('form')
+          return
+        }
+
+        setStage('success')
+      },
+      modal: {
+        ondismiss: () => setStage('form'),
+      },
+      theme: { color: '#4529e0' },
+    })
+
+    rzp.open()
+    setStage('form') // reset local stage; Razorpay's own modal takes over the UI now
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-        {success ? (
-          <div className="text-center">
-            <p className="text-lg font-semibold text-gray-900">Booking confirmed</p>
-            <p className="mt-1 text-sm text-gray-500">
-              {slot.warehouse_name} — {slot.area_sqft} sqft reserved.
-            </p>
-            <button
-              onClick={onClose}
-              className="mt-6 w-full rounded-lg bg-gray-900 py-2 text-sm font-medium text-white hover:bg-gray-800"
-            >
-              Done
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">Confirm booking</h2>
-                <p className="text-sm text-gray-500">{slot.warehouse_name}</p>
-              </div>
-              <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                ✕
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+          {stage === 'success' ? (
+            <div className="text-center">
+              <span className="text-4xl">🎉</span>
+              <p className="mt-3 text-lg font-extrabold text-ink-900">Booking confirmed</p>
+              <p className="mt-1 text-sm text-gray-500">
+                {slot.warehouse_name} — {slot.area_sqft} sqft reserved and paid.
+              </p>
+              <button
+                onClick={onClose}
+                className="mt-6 w-full rounded-full bg-brand-600 py-2.5 text-sm font-bold text-white hover:bg-brand-700"
+              >
+                Done
               </button>
             </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start date</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-                />
+          ) : (
+            <>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-lg font-extrabold text-ink-900">Confirm booking</h2>
+                  <p className="text-sm text-gray-500">{slot.warehouse_name}</p>
+                </div>
+                <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                  ✕
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">End date</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  min={startDate || new Date().toISOString().split('T')[0]}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-                />
+
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wide text-gray-400">Start date</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:border-brand-500 focus:bg-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wide text-gray-400">End date</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate || new Date().toISOString().split('T')[0]}
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:border-brand-500 focus:bg-white focus:outline-none"
+                  />
+                </div>
               </div>
-            </div>
 
-            {durationDays > 0 && !isValidDuration && (
-              <p className="mt-2 text-xs text-amber-600">
-                Minimum booking duration is {slot.min_booking_days} days (currently {durationDays})
-              </p>
-            )}
+              {durationDays > 0 && !isValidDuration && (
+                <p className="mt-2 text-xs text-amber-600">
+                  Minimum booking duration is {slot.min_booking_days} days (currently {durationDays})
+                </p>
+              )}
 
-            <div className="mt-5 space-y-2 rounded-lg bg-gray-50 p-4 text-sm">
-              <Row label={`Area × rate (${slot.area_sqft} sqft × ₹${slot.price_per_sqft})`} value={`₹${subtotal.toLocaleString('en-IN')}`} />
-              <Row label={`Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}%)`} value={`₹${commission.toLocaleString('en-IN')}`} />
-              <div className="border-t border-gray-200 pt-2">
-                <Row label="Total" value={`₹${total.toLocaleString('en-IN')}`} bold />
+              <div className="mt-4">
+                <label className="block text-xs font-bold uppercase tracking-wide text-gray-400">
+                  Pay with
+                </label>
+                <div className="mt-1.5 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setProvider('razorpay')}
+                    className={`rounded-xl border-2 py-2 text-sm font-bold ${
+                      provider === 'razorpay'
+                        ? 'border-brand-600 bg-brand-50 text-brand-700'
+                        : 'border-gray-200 text-gray-500'
+                    }`}
+                  >
+                    🇮🇳 Razorpay (INR)
+                  </button>
+                  <button
+                    onClick={() => setProvider('stripe')}
+                    className={`rounded-xl border-2 py-2 text-sm font-bold ${
+                      provider === 'stripe'
+                        ? 'border-brand-600 bg-brand-50 text-brand-700'
+                        : 'border-gray-200 text-gray-500'
+                    }`}
+                  >
+                    🌍 Stripe (USD)
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-            )}
+              <div className="mt-4 space-y-2 rounded-xl bg-gray-50 p-4 text-sm">
+                <Row label={`Area × rate (${slot.area_sqft} sqft × ₹${slot.price_per_sqft})`} value={`₹${subtotal.toLocaleString('en-IN')}`} />
+                <Row label={`Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}%)`} value={`₹${commission.toLocaleString('en-IN')}`} />
+                <div className="border-t border-gray-200 pt-2">
+                  <Row label="Total" value={`₹${total.toLocaleString('en-IN')}`} bold />
+                </div>
+              </div>
 
-            <button
-              onClick={handleConfirm}
-              disabled={isSubmitting || !startDate || !endDate}
-              className="mt-5 w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Confirming...' : 'Confirm & book'}
-            </button>
-          </>
-        )}
+              {error && (
+                <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+              )}
+
+              <button
+                onClick={handlePay}
+                disabled={stage === 'paying' || !startDate || !endDate}
+                className="mt-5 w-full rounded-full bg-brand-600 py-2.5 text-sm font-bold text-white shadow-sm shadow-brand-600/30 hover:bg-brand-700 disabled:opacity-50"
+              >
+                {stage === 'paying' ? 'Processing…' : `Pay & confirm`}
+              </button>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={bold ? 'font-semibold text-gray-900' : 'text-gray-600'}>{label}</span>
-      <span className={bold ? 'font-semibold text-gray-900' : 'text-gray-900'}>{value}</span>
+      <span className={bold ? 'font-bold text-ink-900' : 'text-gray-600'}>{label}</span>
+      <span className={bold ? 'font-bold text-ink-900' : 'text-ink-900'}>{value}</span>
     </div>
   )
 }
