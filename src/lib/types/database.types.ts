@@ -24,7 +24,17 @@ export type Database = {
           end_date: string
           id: string
           lender_id: string
+          paid_at: string | null
+          payment_provider:
+            | Database["public"]["Enums"]["payment_provider"]
+            | null
+          payment_status: Database["public"]["Enums"]["payment_status"]
           price_per_sqft: number
+          provider_order_id: string | null
+          provider_payment_id: string | null
+          refund_amount: number | null
+          refund_reason: string | null
+          refunded_at: string | null
           renter_id: string
           slot_id: string
           start_date: string
@@ -42,7 +52,17 @@ export type Database = {
           end_date: string
           id?: string
           lender_id: string
+          paid_at?: string | null
+          payment_provider?:
+            | Database["public"]["Enums"]["payment_provider"]
+            | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
           price_per_sqft: number
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           renter_id: string
           slot_id: string
           start_date: string
@@ -60,7 +80,17 @@ export type Database = {
           end_date?: string
           id?: string
           lender_id?: string
+          paid_at?: string | null
+          payment_provider?:
+            | Database["public"]["Enums"]["payment_provider"]
+            | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
           price_per_sqft?: number
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           renter_id?: string
           slot_id?: string
           start_date?: string
@@ -74,7 +104,21 @@ export type Database = {
             foreignKeyName: "bookings_lender_id_fkey"
             columns: ["lender_id"]
             isOneToOne: false
+            referencedRelation: "admin_pending_lenders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_lender_id_fkey"
+            columns: ["lender_id"]
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "admin_pending_lenders"
             referencedColumns: ["id"]
           },
           {
@@ -138,7 +182,72 @@ export type Database = {
             foreignKeyName: "inventory_slots_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
+            referencedRelation: "admin_pending_warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_slots_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string
+          id: string
+          lender_id: string
+          needs_reconciliation: boolean
+          paid_at: string | null
+          payout_reference: string | null
+          status: Database["public"]["Enums"]["payout_status"]
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          lender_id: string
+          needs_reconciliation?: boolean
+          paid_at?: string | null
+          payout_reference?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          lender_id?: string
+          needs_reconciliation?: boolean
+          paid_at?: string | null
+          payout_reference?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_lender_id_fkey"
+            columns: ["lender_id"]
+            isOneToOne: false
+            referencedRelation: "admin_pending_lenders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_lender_id_fkey"
+            columns: ["lender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -174,11 +283,14 @@ export type Database = {
           email: string
           full_name: string
           gstin: string | null
+          gstin_document_url: string | null
           id: string
+          id_document_url: string | null
           is_verified: boolean
           phone: string
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
+          verification_notes: string | null
         }
         Insert: {
           company_name?: string | null
@@ -186,11 +298,14 @@ export type Database = {
           email: string
           full_name: string
           gstin?: string | null
+          gstin_document_url?: string | null
           id: string
+          id_document_url?: string | null
           is_verified?: boolean
           phone: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+          verification_notes?: string | null
         }
         Update: {
           company_name?: string | null
@@ -198,11 +313,14 @@ export type Database = {
           email?: string
           full_name?: string
           gstin?: string | null
+          gstin_document_url?: string | null
           id?: string
+          id_document_url?: string | null
           is_verified?: boolean
           phone?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+          verification_notes?: string | null
         }
         Relationships: []
       }
@@ -212,6 +330,7 @@ export type Database = {
           available_area_sqft: number
           base_price_per_sqft: number
           city: string
+          cover_image_url: string | null
           created_at: string
           description: string | null
           has_fire_safety: boolean
@@ -221,6 +340,7 @@ export type Database = {
           lender_id: string
           location: unknown
           name: string
+          photo_urls: string[] | null
           pincode: string
           state: string
           status: Database["public"]["Enums"]["warehouse_status"]
@@ -233,6 +353,7 @@ export type Database = {
           available_area_sqft: number
           base_price_per_sqft?: number
           city: string
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           has_fire_safety?: boolean
@@ -242,6 +363,7 @@ export type Database = {
           lender_id: string
           location: unknown
           name: string
+          photo_urls?: string[] | null
           pincode: string
           state: string
           status?: Database["public"]["Enums"]["warehouse_status"]
@@ -254,6 +376,7 @@ export type Database = {
           available_area_sqft?: number
           base_price_per_sqft?: number
           city?: string
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           has_fire_safety?: boolean
@@ -263,6 +386,7 @@ export type Database = {
           lender_id?: string
           location?: unknown
           name?: string
+          photo_urls?: string[] | null
           pincode?: string
           state?: string
           status?: Database["public"]["Enums"]["warehouse_status"]
@@ -275,6 +399,13 @@ export type Database = {
             foreignKeyName: "warehouses_lender_id_fkey"
             columns: ["lender_id"]
             isOneToOne: false
+            referencedRelation: "admin_pending_lenders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouses_lender_id_fkey"
+            columns: ["lender_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -282,6 +413,81 @@ export type Database = {
       }
     }
     Views: {
+      admin_pending_lenders: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          gstin: string | null
+          gstin_document_url: string | null
+          id: string | null
+          id_document_url: string | null
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          gstin?: string | null
+          gstin_document_url?: string | null
+          id?: string | null
+          id_document_url?: string | null
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          gstin?: string | null
+          gstin_document_url?: string | null
+          id?: string | null
+          id_document_url?: string | null
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      admin_pending_warehouses: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          id: string | null
+          lender_id: string | null
+          name: string | null
+          state: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          id?: string | null
+          lender_id?: string | null
+          name?: string | null
+          state?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          id?: string | null
+          lender_id?: string | null
+          name?: string | null
+          state?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_lender_id_fkey"
+            columns: ["lender_id"]
+            isOneToOne: false
+            referencedRelation: "admin_pending_lenders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouses_lender_id_fkey"
+            columns: ["lender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geography_columns: {
         Row: {
           coord_dimension: number | null
@@ -453,6 +659,19 @@ export type Database = {
             }
             Returns: string
           }
+      cancel_unpaid_booking: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
+      confirm_booking_payment: {
+        Args: {
+          p_booking_id: string
+          p_provider: Database["public"]["Enums"]["payment_provider"]
+          p_provider_order_id: string
+          p_provider_payment_id: string
+        }
+        Returns: undefined
+      }
       create_booking: {
         Args: { p_end_date: string; p_slot_id: string; p_start_date: string }
         Returns: string
@@ -508,6 +727,7 @@ export type Database = {
         | { Args: { table_name: string }; Returns: string }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      expire_stale_pending_bookings: { Args: never; Returns: undefined }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
@@ -607,7 +827,15 @@ export type Database = {
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
       gettransactionid: { Args: never; Returns: unknown }
+      handle_booking_refund: {
+        Args: { p_amount: number; p_booking_id: string; p_reason: string }
+        Returns: undefined
+      }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      mark_payout_paid: {
+        Args: { p_payout_id: string; p_reference: string }
+        Returns: undefined
+      }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }
@@ -1269,6 +1497,9 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "disputed"
+      payment_provider: "razorpay" | "stripe"
+      payment_status: "pending" | "paid" | "failed" | "refunded"
+      payout_status: "owed" | "paid"
       slot_status: "available" | "reserved" | "occupied" | "maintenance"
       storage_type: "ambient" | "cold_storage" | "hazmat" | "high_value"
       user_role: "lender" | "renter" | "admin"
@@ -1420,6 +1651,9 @@ export const Constants = {
         "cancelled",
         "disputed",
       ],
+      payment_provider: ["razorpay", "stripe"],
+      payment_status: ["pending", "paid", "failed", "refunded"],
+      payout_status: ["owed", "paid"],
       slot_status: ["available", "reserved", "occupied", "maintenance"],
       storage_type: ["ambient", "cold_storage", "hazmat", "high_value"],
       user_role: ["lender", "renter", "admin"],

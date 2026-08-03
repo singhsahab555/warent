@@ -6,6 +6,8 @@ import UserFooter from '@/components/ui/UserFooter'
 
 const navItems: NavItem[] = [
   { href: '/admin', label: 'Pending Approvals', emoji: '✅', exact: true },
+  { href: '/admin/bookings', label: 'All Bookings', emoji: '📋' },
+  { href: '/admin/payouts', label: 'Lender Payouts', emoji: '💸' },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
