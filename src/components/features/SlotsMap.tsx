@@ -53,7 +53,7 @@ export default function SlotsMap({
           latitude: first.lat,
           zoom: 11,
         }}
-        mapStyle="mapbox://styles/mapbox/light-v11"
+        mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
       >
         <NavigationControl position="top-right" showCompass={false} />
 
