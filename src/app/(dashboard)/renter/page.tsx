@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import SearchControls from '@/components/features/SearchControls'
-import WarehouseCard from '@/components/features/WarehouseCard'
+import SearchResultsView from '@/components/features/SearchResultsView'
 import { searchAvailableSlots } from '@/lib/queries/slots'
 import { searchSchema } from '@/lib/validators/search'
 import { SkeletonCardGrid } from '@/components/ui/SkeletonCard'
@@ -54,11 +54,5 @@ async function SearchResults({ city, minSqft }: { city: string; minSqft: number 
     )
   }
 
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {slots.map((slot) => (
-        <WarehouseCard key={slot.slot_id} slot={slot} />
-      ))}
-    </div>
-  )
+  return <SearchResultsView slots={slots} />
 }
