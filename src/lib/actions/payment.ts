@@ -43,6 +43,7 @@ export async function createRazorpayOrder(bookingId: string): Promise<PaymentAct
       currency: 'INR',
       receipt: bookingId,
       notes: { booking_id: bookingId },
+      payment_capture: true, // ensure payments auto-capture; 'authorized but not captured' payments can't be refunded
     })
 
     return {

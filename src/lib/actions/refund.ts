@@ -54,11 +54,10 @@ export async function refundBooking(
       })
     }
   } catch (err: any) {
-    const providerMessage =
-      err?.error?.description || // Razorpay's actual error shape
-      err?.raw?.message ||       // Stripe's actual error shape
-      err?.message ||
-      JSON.stringify(err)
+    console.error('Refund provider error (full):', JSON.stringify(err, null, 2))
+    const description = err?.error?.description || err?.raw?.message || err?.message
+    const code = err?.error?.code || err?.error?.reason
+    const providerMessage = [description, code].filter(Boolean).join(' — ') || JSON.stringify(err)
     return { error: `Refund failed at payment provider: ${providerMessage}` }
   }
 
