@@ -38,9 +38,9 @@ export async function refundBooking(
   try {
     if (booking.payment_provider === 'razorpay') {
       const razorpay = getRazorpayClient()
-      await razorpay.payments.refund(booking.provider_payment_id, {
-        amount: Math.round(booking.total_amount * 100), // full refund, in paise
-      })
+      // Omitting `amount` triggers a full refund of whatever was actually captured —
+      // safer than recalculating and risking a paisa-level mismatch with Razorpay's records.
+      await razorpay.payments.refund(booking.provider_payment_id, {})
     } else if (booking.payment_provider === 'stripe') {
       const stripe = getStripeClient()
       // provider_payment_id stores the Checkout Session id for Stripe bookings;
