@@ -53,8 +53,13 @@ export async function refundBooking(
         payment_intent: session.payment_intent as string,
       })
     }
-  } catch (err) {
-    return { error: `Refund failed at payment provider: ${(err as Error).message}` }
+  } catch (err: any) {
+    const providerMessage =
+      err?.error?.description || // Razorpay's actual error shape
+      err?.raw?.message ||       // Stripe's actual error shape
+      err?.message ||
+      JSON.stringify(err)
+    return { error: `Refund failed at payment provider: ${providerMessage}` }
   }
 
   // Provider refund succeeded — now update our own ledger/booking state
