@@ -7,6 +7,44 @@ import { revalidatePath } from 'next/cache'
 
 export type RefundActionState = { error?: string; success?: boolean } | null
 
+export type RefundEligibility = {
+  error?: string
+  refundPercent?: number
+  refundAmount?: number
+  daysNotice?: number
+  policyTier?: string
+  totalAmount?: number
+}
+
+// Preview what the renter would actually get back, per the cancellation policy,
+// before an admin commits to the refund. Called by the UI to show the amount.
+export async function getRefundEligibility(bookingId: string): Promise<RefundEligibility> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .rpc('calculate_refund_eligibility' as any, { p_booking_id: bookingId } as any)
+    .single() as unknown as {
+    data: { refund_percent: number; refund_amount: number; days_notice: number; policy_tier: string } | null
+    error: { message: string } | null
+  }
+
+  if (error || !data) return { error: error?.message ?? 'Could not calculate refund eligibility' }
+
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('total_amount')
+    .eq('id', bookingId)
+    .single()
+
+  return {
+    refundPercent: data.refund_percent,
+    refundAmount: data.refund_amount,
+    daysNotice: data.days_notice,
+    policyTier: data.policy_tier,
+    totalAmount: (booking as unknown as { total_amount: number } | null)?.total_amount,
+  }
+}
+
 export async function refundBooking(
   bookingId: string,
   reason: string
@@ -35,22 +73,34 @@ export async function refundBooking(
     return { error: 'No payment record found for this booking' }
   }
 
+  // Compute the policy-eligible amount server-side — never trust a client-supplied
+  // refund amount, since that's exactly the kind of value someone could tamper with.
+  const eligibility = await getRefundEligibility(bookingId)
+  if (eligibility.error || eligibility.refundAmount === undefined) {
+    return { error: eligibility.error ?? 'Could not calculate refund amount' }
+  }
+
+  const refundAmount = eligibility.refundAmount
+
+  if (refundAmount <= 0) {
+    return { error: `Non-refundable per cancellation policy: ${eligibility.policyTier}` }
+  }
+
   try {
     if (booking.payment_provider === 'razorpay') {
       const razorpay = getRazorpayClient()
-      // Omitting `amount` triggers a full refund of whatever was actually captured —
-      // safer than recalculating and risking a paisa-level mismatch with Razorpay's records.
-      await razorpay.payments.refund(booking.provider_payment_id, {})
+      await razorpay.payments.refund(booking.provider_payment_id, {
+        amount: Math.round(refundAmount * 100), // partial refund, in paise
+      })
     } else if (booking.payment_provider === 'stripe') {
       const stripe = getStripeClient()
-      // provider_payment_id stores the Checkout Session id for Stripe bookings;
-      // retrieve the actual PaymentIntent to refund against.
       const session = await stripe.checkout.sessions.retrieve(booking.provider_payment_id)
       if (!session.payment_intent) {
         return { error: 'Could not locate Stripe payment to refund' }
       }
       await stripe.refunds.create({
         payment_intent: session.payment_intent as string,
+        amount: Math.round(refundAmount * 100), // partial refund, in cents
       })
     }
   } catch (err: any) {
@@ -61,17 +111,15 @@ export async function refundBooking(
     return { error: `Refund failed at payment provider: ${providerMessage}` }
   }
 
-  // Provider refund succeeded — now update our own ledger/booking state
+  const fullReason = `${reason} (Policy: ${eligibility.policyTier})`
+
   const { error: dbError } = await supabase.rpc('handle_booking_refund' as any, {
     p_booking_id: bookingId,
-    p_amount: booking.total_amount,
-    p_reason: reason,
+    p_amount: refundAmount,
+    p_reason: fullReason,
   } as any)
 
   if (dbError) {
-    // Money has already been refunded on the provider side at this point —
-    // surface this loudly rather than silently, since the DB is now out of sync
-    // with reality until someone manually reconciles it.
     return { error: `Refund succeeded with provider but failed to update our records: ${dbError.message}. Please reconcile manually.` }
   }
 
