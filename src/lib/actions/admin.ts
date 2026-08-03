@@ -39,7 +39,7 @@ export async function rejectLender(_prev: AdminActionState, userId: string): Pro
   // A real flow might store a reason; kept minimal for MVP.
   const { error } = await supabase
     .from('users')
-    // @ts-expect-error — verification_notes exists after migration; regenerate types to clear this
+    
     .update({ verification_notes: 'Rejected — documents insufficient' })
     .eq('id', userId)
 
