@@ -2,7 +2,8 @@
 
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
+import type { MapRef } from 'react-map-gl/mapbox'
 import type { AvailableSlot } from '@/lib/queries/slots'
 
 export default function SlotsMap({
@@ -13,6 +14,13 @@ export default function SlotsMap({
   onSelectSlot?: (slot: AvailableSlot) => void
 }) {
   const [active, setActive] = useState<AvailableSlot | null>(null)
+  const mapRef = useRef<MapRef>(null)
+
+  const handleMapLoad = useCallback(() => {
+    // Mapbox sometimes calculates canvas size before the flex/grid layout
+    // around it settles, leaving tiles blank until a resize is forced.
+    setTimeout(() => mapRef.current?.resize(), 0)
+  }, [])
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
@@ -37,6 +45,8 @@ export default function SlotsMap({
   return (
     <div className="h-[500px] w-full overflow-hidden rounded-2xl border border-black/5 shadow-sm shadow-ink-900/5">
       <Map
+        ref={mapRef}
+        onLoad={handleMapLoad}
         mapboxAccessToken={token}
         initialViewState={{
           longitude: first.lng,
