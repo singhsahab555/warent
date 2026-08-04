@@ -68,9 +68,6 @@ export default async function RenterBookingsPage() {
                     <p className="text-lg font-extrabold text-ink-900">
                       ₹{Number(b.total_amount).toLocaleString('en-IN')}
                     </p>
-                    <p className="text-[11px] text-gray-400">
-                      incl. ₹{Number(b.commission_amount).toLocaleString('en-IN')} commission
-                    </p>
                   </div>
                 </div>
               </div>

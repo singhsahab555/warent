@@ -20,7 +20,7 @@ export default function AddWarehouseForm() {
   } = useForm<AddWarehouseInput>({
     resolver: zodResolver(addWarehouseSchema),
     defaultValues: {
-      slots: [{ slotCode: '', areaSqft: 100, pricePerSqft: 55, minBookingDays: 30 }],
+      slots: [{ slotCode: '', areaSqft: 100, pricePerSqft: 30, minBookingDays: 30 }],
     },
   })
 
@@ -94,7 +94,7 @@ export default function AddWarehouseForm() {
           <h2 className="text-base font-semibold text-gray-900">Inventory slots</h2>
           <button
             type="button"
-            onClick={() => append({ slotCode: '', areaSqft: 100, pricePerSqft: 55, minBookingDays: 30 })}
+            onClick={() => append({ slotCode: '', areaSqft: 100, pricePerSqft: 30, minBookingDays: 30 })}
             className="text-sm font-medium text-gray-900 hover:underline"
           >
             + Add slot
@@ -127,7 +127,7 @@ export default function AddWarehouseForm() {
                 <Field label="Area (50–500 sqft)" error={errors.slots?.[index]?.areaSqft?.message}>
                   <input type="number" {...register(`slots.${index}.areaSqft`)} className={inputClass} />
                 </Field>
-                <Field label="Price/sqft (₹50–60)" error={errors.slots?.[index]?.pricePerSqft?.message}>
+                <Field label="Your rate (₹20–40/sqft)" error={errors.slots?.[index]?.pricePerSqft?.message}>
                   <input type="number" {...register(`slots.${index}.pricePerSqft`)} className={inputClass} />
                 </Field>
                 <Field label="Min booking (days)" error={errors.slots?.[index]?.minBookingDays?.message}>

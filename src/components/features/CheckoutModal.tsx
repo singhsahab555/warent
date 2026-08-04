@@ -6,8 +6,6 @@ import { createBooking } from '@/lib/actions/booking'
 import { createRazorpayOrder, verifyRazorpayPayment, createStripeCheckoutSession } from '@/lib/actions/payment'
 import type { AvailableSlot } from '@/lib/queries/slots'
 
-const COMMISSION_RATE = 0.12 // must mirror the DB function — display-only, DB is source of truth
-
 type Stage = 'form' | 'paying' | 'success'
 
 declare global {
@@ -34,9 +32,7 @@ export default function CheckoutModal({
       ? Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000)
       : 0
   const months = durationDays > 0 ? durationDays / 30 : 0
-  const subtotal = Math.round(slot.area_sqft * slot.price_per_sqft * months)
-  const commission = Math.round(subtotal * COMMISSION_RATE)
-  const total = subtotal + commission
+  const total = Math.round(slot.area_sqft * slot.price_per_sqft * months)
 
   const isValidDuration = durationDays >= slot.min_booking_days
 
@@ -206,8 +202,7 @@ export default function CheckoutModal({
               </div>
 
               <div className="mt-4 space-y-2 rounded-xl bg-gray-50 p-4 text-sm">
-                <Row label={`Area × rate (${slot.area_sqft} sqft × ₹${slot.price_per_sqft})`} value={`₹${subtotal.toLocaleString('en-IN')}`} />
-                <Row label={`Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}%)`} value={`₹${commission.toLocaleString('en-IN')}`} />
+                <Row label={`${slot.area_sqft} sqft × ₹${slot.price_per_sqft}/sqft × ${months.toFixed(1)} mo.`} value="" />
                 <div className="border-t border-gray-200 pt-2">
                   <Row label="Total" value={`₹${total.toLocaleString('en-IN')}`} bold />
                 </div>

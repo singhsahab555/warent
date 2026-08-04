@@ -23,6 +23,7 @@ export type Database = {
           created_at: string
           end_date: string
           id: string
+          lender_amount: number | null
           lender_id: string
           paid_at: string | null
           payment_provider:
@@ -51,6 +52,7 @@ export type Database = {
           created_at?: string
           end_date: string
           id?: string
+          lender_amount?: number | null
           lender_id: string
           paid_at?: string | null
           payment_provider?:
@@ -79,6 +81,7 @@ export type Database = {
           created_at?: string
           end_date?: string
           id?: string
+          lender_amount?: number | null
           lender_id?: string
           paid_at?: string | null
           payment_provider?:
@@ -667,6 +670,10 @@ export type Database = {
           refund_amount: number
           refund_percent: number
         }[]
+      }
+      calculate_renter_price: {
+        Args: { p_lender_price: number }
+        Returns: number
       }
       cancel_unpaid_booking: {
         Args: { p_booking_id: string }

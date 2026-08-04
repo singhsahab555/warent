@@ -14,7 +14,7 @@ const storageEmoji: Record<string, string> = {
 export default function WarehouseCard({ slot }: { slot: AvailableSlot }) {
   const [showModal, setShowModal] = useState(false)
   const months = slot.min_booking_days / 30
-  const estimatedTotal = Math.round(slot.area_sqft * slot.price_per_sqft * months * 1.12)
+  const estimatedTotal = Math.round(slot.area_sqft * slot.price_per_sqft * months)
 
   return (
     <>
@@ -47,7 +47,7 @@ export default function WarehouseCard({ slot }: { slot: AvailableSlot }) {
 
           <div className="mt-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-medium text-gray-400">Est. total, incl. commission</p>
+              <p className="text-[11px] font-medium text-gray-400">Est. total for min. stay</p>
               <p className="text-lg font-extrabold text-ink-900">
                 ₹{estimatedTotal.toLocaleString('en-IN')}
               </p>
