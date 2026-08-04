@@ -102,7 +102,7 @@ export async function createStripeCheckoutSession(bookingId: string): Promise<Pa
       line_items: [
         {
           price_data: {
-            currency: 'usd', // adjust per your global pricing strategy
+            currency: 'inr', // total_amount is already in rupees — charge in the same currency, don't mislabel it as USD
             product_data: { name: 'WARENT warehouse booking' },
             unit_amount: amountCents,
           },
