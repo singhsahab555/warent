@@ -213,7 +213,7 @@ export default function LocationPicker({
               mapboxAccessToken={token}
               initialViewState={{ latitude: value.lat, longitude: value.lng, zoom: 15 }}
               style={{ width: '100%', height: '100%' }}
-              mapStyle="mapbox://styles/mapbox/streets-v12"
+              mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
             >
               <Marker
                 latitude={value.lat}

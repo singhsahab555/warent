@@ -43,7 +43,7 @@ export default function SearchResultsView({ slots }: { slots: AvailableSlot[] })
       </div>
 
       <div className={view === 'list' ? '' : 'hidden'}>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="stagger-children grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {slots.map((slot) => (
             <WarehouseCard key={slot.slot_id} slot={slot} />
           ))}
