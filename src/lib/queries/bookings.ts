@@ -6,8 +6,8 @@ export async function getLenderBookings(lenderId: string) {
   const { data, error } = await supabase
     .from('bookings')
     .select(`
-      id, start_date, end_date, area_sqft, price_per_sqft,
-      total_amount, status, created_at,
+      id, start_date, end_date, area_sqft,
+      lender_amount, status, created_at,
       inventory_slots ( slot_code ),
       users:renter_id ( full_name, company_name )
     `)

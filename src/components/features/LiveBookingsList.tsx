@@ -8,7 +8,7 @@ type Booking = {
   start_date: string
   end_date: string
   area_sqft: number
-  total_amount: number
+  lender_amount: number
   status: string
   created_at: string
   inventory_slots: { slot_code: string } | null
@@ -39,17 +39,20 @@ export default function LiveBookingsList({
           filter: `lender_id=eq.${lenderId}`,
         },
         async (payload) => {
-          // Fetch related slot/renter info since payload only has raw columns
+          // Fetch related slot/renter info since payload only has raw columns.
+          // Deliberately selects lender_amount, NOT total_amount/price_per_sqft —
+          // those are the renter-facing marked-up figures and must never reach
+          // the lender's dashboard, or the hidden margin is trivially reverse-engineered.
           const { data } = await supabase
             .from('bookings')
             .select(`
-              id, start_date, end_date, area_sqft, price_per_sqft,
-              total_amount, status, created_at,
+              id, start_date, end_date, area_sqft,
+              lender_amount, status, created_at,
               inventory_slots ( slot_code ),
               users:renter_id ( full_name, company_name )
             `)
             .eq('id', payload.new.id)
-            .single()
+            .single() as unknown as { data: Booking | null }
 
           if (data) {
             setBookings((prev) => [data as unknown as Booking, ...prev])
@@ -98,7 +101,7 @@ export default function LiveBookingsList({
             </div>
             <div className="text-right">
               <p className="text-sm font-semibold text-gray-900">
-                ₹{Number(b.total_amount).toLocaleString('en-IN')}
+                ₹{Number(b.lender_amount).toLocaleString('en-IN')}
               </p>
               <span className="text-xs capitalize text-gray-500">{b.status}</span>
             </div>
