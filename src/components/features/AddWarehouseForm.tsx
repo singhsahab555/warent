@@ -6,6 +6,7 @@ import { addWarehouseSchema, type AddWarehouseInput } from '@/lib/validators/war
 import { createWarehouse } from '@/lib/actions/warehouse'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import LocationPicker from './LocationPicker'
 
 export default function AddWarehouseForm() {
   const router = useRouter()
@@ -16,13 +17,24 @@ export default function AddWarehouseForm() {
     register,
     control,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<AddWarehouseInput>({
     resolver: zodResolver(addWarehouseSchema),
     defaultValues: {
+      addressLine: '',
+      city: '',
+      state: '',
+      pincode: '',
+      lat: 0,
+      lng: 0,
       slots: [{ slotCode: '', areaSqft: 100, pricePerSqft: 30, minBookingDays: 30 }],
     },
   })
+
+  const locationValue = watch(['addressLine', 'city', 'state', 'pincode', 'lat', 'lng'])
+  const [addressLine, city, state, pincode, lat, lng] = locationValue
 
   const { fields, append, remove } = useFieldArray({ control, name: 'slots' })
 
@@ -57,30 +69,46 @@ export default function AddWarehouseForm() {
             <textarea {...register('description')} rows={3} className={inputClass} />
           </Field>
 
-          <Field label="Address" error={errors.addressLine?.message}>
-            <input {...register('addressLine')} className={inputClass} />
-          </Field>
+          <LocationPicker
+            value={{ addressLine, city, state, pincode, lat, lng }}
+            onChange={(next) => {
+              setValue('addressLine', next.addressLine, { shouldValidate: true })
+              setValue('city', next.city, { shouldValidate: true })
+              setValue('state', next.state, { shouldValidate: true })
+              setValue('pincode', next.pincode, { shouldValidate: true })
+              setValue('lat', next.lat, { shouldValidate: true })
+              setValue('lng', next.lng, { shouldValidate: true })
+            }}
+          />
+          {(errors.addressLine || errors.city || errors.state || errors.pincode || errors.lat || errors.lng) && (
+            <p className="text-xs text-red-600">
+              {errors.addressLine?.message ||
+                errors.city?.message ||
+                errors.state?.message ||
+                errors.pincode?.message ||
+                errors.lat?.message ||
+                errors.lng?.message}
+            </p>
+          )}
 
-          <div className="grid grid-cols-3 gap-3">
-            <Field label="City" error={errors.city?.message}>
-              <input {...register('city')} className={inputClass} />
-            </Field>
-            <Field label="State" error={errors.state?.message}>
-              <input {...register('state')} className={inputClass} />
-            </Field>
-            <Field label="Pincode" error={errors.pincode?.message}>
-              <input {...register('pincode')} className={inputClass} />
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Latitude" error={errors.lat?.message}>
-              <input type="number" step="any" {...register('lat')} className={inputClass} />
-            </Field>
-            <Field label="Longitude" error={errors.lng?.message}>
-              <input type="number" step="any" {...register('lng')} className={inputClass} />
-            </Field>
-          </div>
+          {addressLine && (
+            <div>
+              <p className="mb-1.5 text-xs text-gray-400">
+                Auto-filled from your address — edit if anything looks off:
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="City" error={undefined}>
+                  <input {...register('city')} className={inputClass} />
+                </Field>
+                <Field label="State" error={undefined}>
+                  <input {...register('state')} className={inputClass} />
+                </Field>
+                <Field label="Pincode" error={undefined}>
+                  <input {...register('pincode')} className={inputClass} />
+                </Field>
+              </div>
+            </div>
+          )}
 
           <Field label="Total area (sqft)" error={errors.totalAreaSqft?.message}>
             <input type="number" {...register('totalAreaSqft')} className={inputClass} />
