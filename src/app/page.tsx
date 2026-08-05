@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Logo from '@/components/ui/Logo'
+import SocialLinks from '@/components/ui/SocialLinks'
 import { BRAND } from '@/lib/brand'
 
 export default function LandingPage() {
@@ -112,10 +113,16 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-black/5 py-8 text-center text-xs text-gray-400">
-        <div className="mb-3 flex justify-center gap-4 font-semibold">
+        <div className="mb-3 flex flex-wrap justify-center gap-4 font-semibold">
+          <Link href="/about" className="hover:text-ink-900">About</Link>
+          <Link href="/faq" className="hover:text-ink-900">FAQ</Link>
+          <Link href="/contact" className="hover:text-ink-900">Contact</Link>
           <Link href="/terms" className="hover:text-ink-900">Terms of Service</Link>
           <Link href="/privacy" className="hover:text-ink-900">Privacy Policy</Link>
           <Link href="/refund-policy" className="hover:text-ink-900">Refund Policy</Link>
+        </div>
+        <div className="mb-3">
+          <SocialLinks />
         </div>
         © {new Date().getFullYear()} {BRAND.name}. Built for India's D2C supply chain.
       </footer>

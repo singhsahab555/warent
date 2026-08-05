@@ -279,6 +279,60 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_pending_lenders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           company_name: string | null
@@ -1518,6 +1572,7 @@ export type Database = {
       payout_status: "owed" | "paid"
       slot_status: "available" | "reserved" | "occupied" | "maintenance"
       storage_type: "ambient" | "cold_storage" | "hazmat" | "high_value"
+      ticket_status: "open" | "in_progress" | "resolved"
       user_role: "lender" | "renter" | "admin"
       warehouse_status:
         | "pending_verification"
@@ -1672,6 +1727,7 @@ export const Constants = {
       payout_status: ["owed", "paid"],
       slot_status: ["available", "reserved", "occupied", "maintenance"],
       storage_type: ["ambient", "cold_storage", "hazmat", "high_value"],
+      ticket_status: ["open", "in_progress", "resolved"],
       user_role: ["lender", "renter", "admin"],
       warehouse_status: [
         "pending_verification",
