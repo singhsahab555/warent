@@ -19,6 +19,8 @@ type PendingWarehouse = {
   city: string
   state: string
   lender_id: string
+  cover_image_url: string | null
+  photo_urls: string[] | null
   created_at: string
 }
 
@@ -96,13 +98,32 @@ export default async function AdminPage() {
             {pendingWarehouses.map((w) => (
               <div
                 key={w.id}
-                className="flex items-center justify-between rounded-2xl border border-black/5 bg-white p-4"
+                className="rounded-2xl border border-black/5 bg-white p-4"
               >
-                <div>
-                  <p className="font-bold text-ink-900">{w.name}</p>
-                  <p className="text-sm text-gray-500">{w.city}, {w.state}</p>
+                {w.photo_urls && w.photo_urls.length > 0 ? (
+                  <div className="mb-3 flex gap-2 overflow-x-auto">
+                    {w.photo_urls.map((url, i) => (
+                      <img
+                        key={i}
+                        src={url}
+                        alt={`${w.name} photo ${i + 1}`}
+                        className="h-24 w-32 shrink-0 rounded-lg object-cover"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+                    ⚠ No photos uploaded by lender yet
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-ink-900">{w.name}</p>
+                    <p className="text-sm text-gray-500">{w.city}, {w.state}</p>
+                  </div>
+                  <ApprovalButtons id={w.id} onApprove={approveWarehouse} onReject={rejectWarehouse} />
                 </div>
-                <ApprovalButtons id={w.id} onApprove={approveWarehouse} onReject={rejectWarehouse} />
               </div>
             ))}
           </div>
