@@ -9,6 +9,7 @@ const navItems: NavItem[] = [
   { href: '/lender/warehouses/new', label: 'Add Warehouse', emoji: '➕' },
   { href: '/lender/bookings', label: 'Bookings', emoji: '📋' },
   { href: '/lender/earnings', label: 'Earnings', emoji: '💰' },
+  { href: '/lender/verification', label: 'Verification', emoji: '🪪' },
 ]
 
 export default async function LenderLayout({ children }: { children: React.ReactNode }) {

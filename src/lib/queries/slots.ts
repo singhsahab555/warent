@@ -16,6 +16,7 @@ export type AvailableSlot = {
   lng: number
   has_loading_dock: boolean
   has_security: boolean
+  cover_image_url: string | null
 }
 
 export async function searchAvailableSlots(city: string, minSqft: number): Promise<{
@@ -33,5 +34,5 @@ export async function searchAvailableSlots(city: string, minSqft: number): Promi
     return { data: [], error: error.message }
   }
 
-  return { data: data ?? [], error: null }
+  return { data: (data ?? []) as unknown as AvailableSlot[], error: null }
 }

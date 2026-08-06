@@ -746,20 +746,37 @@ export type Database = {
         Args: { p_end_date: string; p_slot_id: string; p_start_date: string }
         Returns: string
       }
-      create_warehouse: {
-        Args: {
-          p_address_line: string
-          p_city: string
-          p_description: string
-          p_lat: number
-          p_lng: number
-          p_name: string
-          p_pincode: string
-          p_state: string
-          p_total_area_sqft: number
-        }
-        Returns: string
-      }
+      create_warehouse:
+        | {
+            Args: {
+              p_address_line: string
+              p_city: string
+              p_description: string
+              p_lat: number
+              p_lng: number
+              p_name: string
+              p_pincode: string
+              p_state: string
+              p_total_area_sqft: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_address_line: string
+              p_city: string
+              p_cover_image_url?: string
+              p_description: string
+              p_lat: number
+              p_lng: number
+              p_name: string
+              p_photo_urls?: string[]
+              p_pincode: string
+              p_state: string
+              p_total_area_sqft: number
+            }
+            Returns: string
+          }
       current_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
@@ -952,6 +969,7 @@ export type Database = {
           address_line: string
           area_sqft: number
           city: string
+          cover_image_url: string
           has_loading_dock: boolean
           has_security: boolean
           lat: number

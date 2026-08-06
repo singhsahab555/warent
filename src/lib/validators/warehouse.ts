@@ -18,6 +18,8 @@ export const addWarehouseSchema = z.object({
   lng: z.coerce.number(),
   totalAreaSqft: z.coerce.number().min(50, 'Minimum 50 sqft'),
   slots: z.array(inventorySlotSchema).min(1, 'Add at least one slot'),
+  photoUrls: z.array(z.string().url()).max(5).optional().default([]),
+  coverImageUrl: z.string().url().nullable().optional(),
 })
 
 export type AddWarehouseInput = z.infer<typeof addWarehouseSchema>

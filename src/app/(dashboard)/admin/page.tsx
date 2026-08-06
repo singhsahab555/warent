@@ -9,6 +9,7 @@ type PendingLender = {
   phone: string
   gstin: string | null
   gstin_document_url: string | null
+  id_document_url: string | null
   created_at: string
 }
 
@@ -63,7 +64,15 @@ export default async function AdminPage() {
                       <>
                         {' · '}
                         <a href={l.gstin_document_url} target="_blank" className="font-semibold text-brand-600 underline">
-                          view document
+                          view GSTIN doc
+                        </a>
+                      </>
+                    )}
+                    {l.id_document_url && (
+                      <>
+                        {' · '}
+                        <a href={l.id_document_url} target="_blank" className="font-semibold text-brand-600 underline">
+                          view ID doc
                         </a>
                       </>
                     )}

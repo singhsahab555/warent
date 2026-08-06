@@ -22,6 +22,7 @@ export async function createWarehouse(
   const supabase = await createClient()
   const {
     name, description, addressLine, city, state, pincode, lat, lng, totalAreaSqft, slots,
+    photoUrls, coverImageUrl,
   } = parsed.data
 
   // 1. Create the warehouse via RPC (handles PostGIS point)
@@ -35,6 +36,8 @@ export async function createWarehouse(
     p_lat: lat,
     p_lng: lng,
     p_total_area_sqft: totalAreaSqft,
+    p_cover_image_url: coverImageUrl ?? null,
+    p_photo_urls: photoUrls ?? [],
   })
 
   if (warehouseError || !warehouseId) {

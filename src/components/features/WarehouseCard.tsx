@@ -19,9 +19,22 @@ export default function WarehouseCard({ slot }: { slot: AvailableSlot }) {
   return (
     <>
       <div className="group overflow-hidden rounded-2xl border border-black/5 bg-white transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-ink-900/5">
-        <div className="flex h-28 items-end justify-between bg-gradient-to-br from-brand-50 to-accent-50 px-5 pb-3 pt-4">
-          <span className="text-3xl">{storageEmoji[slot.storage_type] ?? '📦'}</span>
-          <span className="rounded-full bg-white/80 px-2.5 py-1 text-xs font-bold capitalize text-brand-700 backdrop-blur-sm">
+        <div
+          className="relative flex h-28 items-end justify-between bg-cover bg-center px-5 pb-3 pt-4"
+          style={
+            slot.cover_image_url
+              ? { backgroundImage: `url(${slot.cover_image_url})` }
+              : undefined
+          }
+        >
+          {!slot.cover_image_url && (
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-50 to-accent-50" />
+          )}
+          {slot.cover_image_url && (
+            <div className="absolute inset-0 bg-black/20" />
+          )}
+          <span className="relative text-3xl">{storageEmoji[slot.storage_type] ?? '📦'}</span>
+          <span className="relative rounded-full bg-white/80 px-2.5 py-1 text-xs font-bold capitalize text-brand-700 backdrop-blur-sm">
             {slot.storage_type.replace('_', ' ')}
           </span>
         </div>

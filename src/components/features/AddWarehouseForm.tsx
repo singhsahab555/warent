@@ -4,14 +4,27 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addWarehouseSchema, type AddWarehouseInput } from '@/lib/validators/warehouse'
 import { createWarehouse } from '@/lib/actions/warehouse'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import LocationPicker from './LocationPicker'
+import FileUploadField from './FileUploadField'
+import { createClient } from '@/lib/supabase/client'
 
 export default function AddWarehouseForm() {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [photoUrls, setPhotoUrls] = useState<string[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) setUserId(user.id)
+    }
+    loadUser()
+  }, [])
 
   const {
     register,
@@ -42,7 +55,11 @@ export default function AddWarehouseForm() {
     setServerError(null)
     setIsSubmitting(true)
 
-    const result = await createWarehouse(null, data)
+    const result = await createWarehouse(null, {
+      ...data,
+      photoUrls,
+      coverImageUrl: photoUrls[0] ?? null,
+    })
 
     setIsSubmitting(false)
 
@@ -113,6 +130,43 @@ export default function AddWarehouseForm() {
           <Field label="Total area (sqft)" error={errors.totalAreaSqft?.message}>
             <input type="number" {...register('totalAreaSqft')} className={inputClass} />
           </Field>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Warehouse photos (up to 5)
+            </label>
+            <p className="mt-1 text-xs text-gray-400">
+              Real photos help renters trust your listing and book faster.
+            </p>
+
+            {userId && (
+              <div className="mt-2 space-y-3">
+                {photoUrls.map((url, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2">
+                    <img src={url} alt={`Photo ${i + 1}`} className="h-14 w-14 rounded-md object-cover" />
+                    <span className="flex-1 truncate text-xs text-gray-500">Photo {i + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => setPhotoUrls((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="text-xs font-semibold text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+
+                {photoUrls.length < 5 && (
+                  <FileUploadField
+                    bucket="warehouse-photos"
+                    pathPrefix={userId}
+                    label={`Add photo ${photoUrls.length + 1}`}
+                    accept="image/*"
+                    onUploaded={(url) => setPhotoUrls((prev) => [...prev, url])}
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
