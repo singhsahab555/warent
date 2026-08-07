@@ -21,6 +21,10 @@ const RENTER_FAQS = [
     q: 'Are the warehouses verified?',
     a: 'Every warehouse is reviewed by our team before it appears in search results.',
   },
+  {
+    q: 'What if the space doesn\'t match the listing when I arrive?',
+    a: 'The Lender is responsible for the physical condition of their space. If it doesn\'t match what was listed, contact our support team right away — we investigate every report and take action against Lenders who misrepresent their listings.',
+  },
 ]
 
 const LENDER_FAQS = [
@@ -35,6 +39,10 @@ const LENDER_FAQS = [
   {
     q: 'What happens after I submit a warehouse?',
     a: 'New listings start as "pending verification." Our team reviews it, then you can publish it live from your warehouse\'s detail page.',
+  },
+  {
+    q: 'Who is responsible for maintaining and cleaning the space?',
+    a: 'You are. WARENT handles bookings, payments, and verification — but the physical condition, cleanliness, security, and safety of your warehouse is your responsibility as the space owner, for the full duration of any booking.',
   },
 ]
 

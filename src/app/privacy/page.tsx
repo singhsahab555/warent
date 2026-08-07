@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         <SubList
           items={[
             'To create and manage your account, and route you to the correct dashboard based on your role.',
-            'To process bookings, calculate pricing/commission, and prevent double-bookings.',
+            'To process bookings, calculate pricing, and prevent double-bookings.',
             'To process payments and refunds via our payment partners.',
             'To verify Lender identity and warehouse legitimacy before listings go live.',
             'To send transactional emails (booking confirmations, verification status, payout notices).',

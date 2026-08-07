@@ -79,7 +79,7 @@ export default function LandingPage() {
       {/* Stat strip */}
       <section className="border-y border-black/5 bg-ink-900">
         <div className="mx-auto grid max-w-5xl grid-cols-3 gap-4 px-6 py-8 text-center">
-          <Stat value="50–500" label="sqft micro-slots" />
+          <Stat value="50–50,000" label="sqft, any size" />
           <Stat value="< 60 sec" label="to confirm a booking" />
           <Stat value="0" label="double-bookings, ever" />
         </div>
