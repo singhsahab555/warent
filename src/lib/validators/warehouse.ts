@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const inventorySlotSchema = z.object({
   slotCode: z.string().min(1, 'Slot code required'),
-  areaSqft: z.coerce.number().min(50, 'Minimum 50 sqft').max(500, 'Maximum 500 sqft'),
+  areaSqft: z.coerce.number().min(50, 'Minimum 50 sqft').max(50000, 'Maximum 50,000 sqft per slot'),
   pricePerSqft: z.coerce.number().min(20, 'Minimum ₹20/sqft').max(40, 'Maximum ₹40/sqft'),
   minBookingDays: z.coerce.number().min(1, 'At least 1 day'),
 })

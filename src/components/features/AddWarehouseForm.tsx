@@ -206,7 +206,7 @@ export default function AddWarehouseForm() {
                 <Field label="Slot code" error={errors.slots?.[index]?.slotCode?.message}>
                   <input {...register(`slots.${index}.slotCode`)} placeholder="A-101" className={inputClass} />
                 </Field>
-                <Field label="Area (50–500 sqft)" error={errors.slots?.[index]?.areaSqft?.message}>
+                <Field label="Area (sqft) — any size" error={errors.slots?.[index]?.areaSqft?.message}>
                   <input type="number" {...register(`slots.${index}.areaSqft`)} className={inputClass} />
                 </Field>
                 <Field label="Your rate (₹20–40/sqft)" error={errors.slots?.[index]?.pricePerSqft?.message}>
