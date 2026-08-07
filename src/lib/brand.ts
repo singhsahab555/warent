@@ -10,7 +10,7 @@ export const BRAND = {
 // only renders an icon for links that are non-null — leave any as null to
 // keep it hidden, no other code changes needed.
 export const SOCIAL_LINKS = {
-  instagram: null as string | null,
+  instagram: 'https://instagram.com' as string | null,
   linkedin: null as string | null,
   twitter: null as string | null,
 } as const
