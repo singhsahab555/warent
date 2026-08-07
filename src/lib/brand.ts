@@ -1,6 +1,6 @@
 export const BRAND = {
   name: 'WARENT',
-  tagline: 'Warehouse space, in minutes.',
+  tagline: 'Rent by the square foot, not the warehouse.',
   description:
     'Fractional warehousing for D2C brands. Book verified space by the square foot, not the lease term.',
   supportEmail: 'sumitsingh12022@gmail.com', // update once you have a real business inbox
