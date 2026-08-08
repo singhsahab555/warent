@@ -23,17 +23,18 @@ export async function POST(req: NextRequest) {
     ]
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: SUPPORT_CONTEXT }] },
+          systemInstruction: { parts: [{ text: SUPPORT_CONTEXT }] },
           contents,
           generationConfig: {
-            temperature: 0.3, // low — we want grounded, consistent answers, not creative ones
+            // Gemini 3.x: don't override temperature/top_p/top_k — Google
+            // explicitly recommends leaving these at default for 3.x models.
             maxOutputTokens: 300,
-            thinkingConfig: { thinkingBudget: 0 }, // this is a quick FAQ bot, not a reasoning task — skip the extra "thinking" tokens 2.5 models add by default
+            thinkingConfig: { thinkingLevel: 'minimal' }, // fastest/cheapest — right fit for a quick FAQ bot, not deep reasoning
           },
         }),
       }
