@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { addWarehouseSchema } from '@/lib/validators/warehouse'
+import { addWarehouseSchema, inventorySlotSchema } from '@/lib/validators/warehouse'
 import { revalidatePath } from 'next/cache'
 
 export type WarehouseActionState = {
@@ -44,23 +44,53 @@ export async function createWarehouse(
     return { error: warehouseError?.message ?? 'Failed to create warehouse' }
   }
 
-  // 2. Insert the fractional slots
-  const { error: slotsError } = await supabase.from('inventory_slots').insert(
-    slots.map((slot) => ({
-      warehouse_id: warehouseId,
-      slot_code: slot.slotCode,
-      area_sqft: slot.areaSqft,
-      price_per_sqft: slot.pricePerSqft,
-      min_booking_days: slot.minBookingDays,
-      storage_type: slot.storageType,
-    }))
-  )
+  // 2. Insert the fractional slots — routed through add_inventory_slot so
+  // available_area_sqft is correctly decremented and over-allocation is
+  // rejected, using the exact same logic as adding slots later.
+  for (const slot of slots) {
+    const { error: slotError } = await supabase.rpc('add_inventory_slot' as any, {
+      p_warehouse_id: warehouseId,
+      p_slot_code: slot.slotCode,
+      p_area_sqft: slot.areaSqft,
+      p_price_per_sqft: slot.pricePerSqft,
+      p_min_booking_days: slot.minBookingDays,
+      p_storage_type: slot.storageType,
+    } as any)
 
-  if (slotsError) {
-    return { error: slotsError.message }
+    if (slotError) {
+      return { error: `Slot "${slot.slotCode}": ${slotError.message}` }
+    }
   }
 
   revalidatePath('/lender/warehouses')
+  return { success: true }
+}
+
+export async function addSlotToWarehouse(
+  warehouseId: string,
+  input: unknown
+): Promise<WarehouseActionState> {
+  const parsed = inventorySlotSchema.safeParse(input)
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('add_inventory_slot' as any, {
+    p_warehouse_id: warehouseId,
+    p_slot_code: parsed.data.slotCode,
+    p_area_sqft: parsed.data.areaSqft,
+    p_price_per_sqft: parsed.data.pricePerSqft,
+    p_min_booking_days: parsed.data.minBookingDays,
+    p_storage_type: parsed.data.storageType,
+  } as any)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath(`/lender/warehouses/${warehouseId}`)
   return { success: true }
 }
 

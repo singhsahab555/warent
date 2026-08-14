@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getWarehouseDetail } from '@/lib/queries/warehouse-detail'
 import PublishToggle from '@/components/features/PublishToggle'
+import AddSlotForm from '@/components/features/AddSlotForm'
 
 const statusStyles: Record<string, string> = {
   active: 'bg-accent-50 text-accent-700',
@@ -133,6 +134,8 @@ export default async function WarehouseDetailPage({
           </table>
         </div>
       )}
+
+      <AddSlotForm warehouseId={warehouse.id} availableSqft={warehouse.available_area_sqft} />
     </div>
   )
 }
