@@ -3,6 +3,8 @@ import Logo from '@/components/ui/Logo'
 import SocialLinks from '@/components/ui/SocialLinks'
 import ScrollReveal from '@/components/ui/ScrollReveal'
 import ComparisonSection from '@/components/features/ComparisonSection'
+import ValuePropRow from '@/components/features/ValuePropRow'
+import StorageCategoriesGrid from '@/components/features/StorageCategoriesGrid'
 import { BRAND } from '@/lib/brand'
 
 export default function LandingPage() {
@@ -85,8 +87,14 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Icon-row value props */}
+      <ValuePropRow />
+
       {/* The core value-prop comparison */}
       <ComparisonSection />
+
+      {/* What you can store */}
+      <StorageCategoriesGrid />
 
       {/* How it works */}
       <section className="mx-auto max-w-5xl px-6 py-20">
