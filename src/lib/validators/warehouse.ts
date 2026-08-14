@@ -5,6 +5,7 @@ export const inventorySlotSchema = z.object({
   areaSqft: z.coerce.number().min(50, 'Minimum 50 sqft').max(50000, 'Maximum 50,000 sqft per slot'),
   pricePerSqft: z.coerce.number().min(20, 'Minimum ₹20/sqft').max(40, 'Maximum ₹40/sqft'),
   minBookingDays: z.coerce.number().min(1, 'At least 1 day'),
+  storageType: z.enum(['ambient', 'cold_storage', 'hazmat', 'high_value']).default('ambient'),
 })
 
 export const addWarehouseSchema = z.object({

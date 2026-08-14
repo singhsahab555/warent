@@ -52,6 +52,7 @@ export async function createWarehouse(
       area_sqft: slot.areaSqft,
       price_per_sqft: slot.pricePerSqft,
       min_booking_days: slot.minBookingDays,
+      storage_type: slot.storageType,
     }))
   )
 

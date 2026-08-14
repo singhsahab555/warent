@@ -42,7 +42,7 @@ export default function AddWarehouseForm() {
       pincode: '',
       lat: 0,
       lng: 0,
-      slots: [{ slotCode: '', areaSqft: 100, pricePerSqft: 30, minBookingDays: 30 }],
+      slots: [{ slotCode: '', areaSqft: 100, pricePerSqft: 30, minBookingDays: 30, storageType: 'ambient' as const }],
     },
   })
 
@@ -176,7 +176,7 @@ export default function AddWarehouseForm() {
           <h2 className="text-base font-semibold text-gray-900">Inventory slots</h2>
           <button
             type="button"
-            onClick={() => append({ slotCode: '', areaSqft: 100, pricePerSqft: 30, minBookingDays: 30 })}
+            onClick={() => append({ slotCode: '', areaSqft: 100, pricePerSqft: 30, minBookingDays: 30, storageType: 'ambient' as const })}
             className="text-sm font-medium text-gray-900 hover:underline"
           >
             + Add slot
@@ -214,6 +214,14 @@ export default function AddWarehouseForm() {
                 </Field>
                 <Field label="Min booking (days)" error={errors.slots?.[index]?.minBookingDays?.message}>
                   <input type="number" {...register(`slots.${index}.minBookingDays`)} className={inputClass} />
+                </Field>
+                <Field label="Storage type" error={errors.slots?.[index]?.storageType?.message}>
+                  <select {...register(`slots.${index}.storageType`)} className={inputClass}>
+                    <option value="ambient">📦 Ambient (general goods)</option>
+                    <option value="cold_storage">❄️ Cold storage</option>
+                    <option value="high_value">💎 High-value goods</option>
+                    <option value="hazmat">⚠️ Hazmat-compliant</option>
+                  </select>
                 </Field>
               </div>
             </div>
