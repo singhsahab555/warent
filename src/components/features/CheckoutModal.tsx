@@ -219,6 +219,15 @@ export default function CheckoutModal({
               >
                 {stage === 'paying' ? 'Processing…' : `Pay & confirm`}
               </button>
+
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-gray-400">
+                <span>🔒</span>
+                <span>Secured by {provider === 'razorpay' ? 'Razorpay' : 'Stripe'}</span>
+                <span className="mx-1">·</span>
+                <a href="/refund-policy" target="_blank" className="underline hover:text-gray-600">
+                  Cancellation policy
+                </a>
+              </div>
             </>
           )}
         </div>

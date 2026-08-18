@@ -5,11 +5,13 @@ import ScrollReveal from '@/components/ui/ScrollReveal'
 import ComparisonSection from '@/components/features/ComparisonSection'
 import ValuePropRow from '@/components/features/ValuePropRow'
 import StorageCategoriesGrid from '@/components/features/StorageCategoriesGrid'
+import PromoModal from '@/components/features/PromoModal'
 import { BRAND } from '@/lib/brand'
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-surface">
+      <PromoModal />
       <header className="sticky top-0 z-20 border-b border-black/5 bg-surface/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Logo />
